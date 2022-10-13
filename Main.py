@@ -49,7 +49,11 @@ def main():
     elif(fv>0 and pv == 0):
         result = npf.pv(rate=rate,nper=nper,fv = fv,pmt =-pmt)
         st.write("Total cash that you have to deposit from right now is: {result}".format(result=result))
-        
+    elif(pv > 0 and fv >0 and pmt > 0 ):
+        st.warning("PV - FV - PMT can not greater than 0 at similiar time")
+    elif(pv >= 0 and fv >=0 and pmt == 0):
+        result = npf.pmt(rate=rate, nper=nper,pv=pv,fv=fv)
+        st.write("If you want to have {fv} in {duration} with {pv} from now, you have to deposit {result} per month".format(fv=fv,pv=pv,duration=duration,result=-result))
 
     
 
