@@ -20,5 +20,13 @@ def get_deposit_rate():
     deposit_rate.columns = deposit_rate.iloc[0]
     deposit_rate = deposit_rate[1:]
     deposit_rate.head()
-
+    deposit_rate = format_data(deposit_rate)
+    
     return deposit_rate
+
+def format_data(data):
+    df = pd.DataFrame(data)
+    print(type(df))
+    df.rename(columns= lambda col: col.replace("Ngân hàng", "Bank").replace("01 tháng", " 01 month").replace("tháng", "months"),inplace= True)
+
+    return df
