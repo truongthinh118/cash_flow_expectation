@@ -27,7 +27,7 @@ def main():
     reference_rate = deposit_rate.loc[deposit_rate['Bank'] == bank]
     st.write(reference_rate.style.hide_index().to_html(),unsafe_allow_html=True)
     st.write("\n")
-    duration = st.selectbox("Duration",(duration_list))
+    duration = st.sidebar.selectbox("Duration",(duration_list))
     nper = int(str(duration)[1:3])
     rate = deposit_rate.loc[1][duration].replace(",",".")
 
