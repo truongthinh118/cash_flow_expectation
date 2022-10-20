@@ -29,7 +29,7 @@ def main():
     st.write("\n")
     duration = st.sidebar.selectbox("Duration",(duration_list))
     nper = int(str(duration)[1:3])
-    rate = deposit_rate.loc[1][duration].replace(",",".")
+    rate = reference_rate.loc[1][duration].replace(",",".")
 
     string = "Deposit rate of {bank} in {duration} is: {rate}%"
     st.caption(string.format(bank = bank, duration = duration, rate = rate))
