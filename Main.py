@@ -37,7 +37,7 @@ def main():
                     index = index-1
                     rate = reference_rate.drop('Bank',axis=1).iat[0,index]
                     if index <= -1:
-                        break;
+                        break
 
                 if rate == "":
                     st.write("Bank not support")
@@ -60,7 +60,7 @@ def main():
                     index = index-1
                     rate = reference_rate.drop('Bank',axis=1).iat[0,index]
                     if index <= -1:
-                        break;
+                        break
 
                 if rate == "":
                     st.write("Bank not support")
