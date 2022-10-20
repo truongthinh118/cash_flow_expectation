@@ -1,8 +1,5 @@
 import streamlit as st
 import numpy_financial as npf
-import ta
-from io import StringIO
-import sys
 import InterestRate
 
 deposit_rate = InterestRate.get_deposit_rate()
