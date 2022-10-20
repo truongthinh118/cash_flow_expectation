@@ -9,7 +9,7 @@ deposit_rate = InterestRate.get_deposit_rate()
 bank_list = deposit_rate['Bank']
 duration_list =[int(str(col)[0:3]) for col in deposit_rate.drop('Bank',axis=1,inplace=False).columns]
 
-st.set_page_config(page_title ="Cash Flow Expectation")
+st.set_page_config(page_title ="Cash Flow Expectation",initial_sidebar_state="expanded")
 def main():
     st.title("Cash Flow Expectation")
     st.sidebar.write("Choose The Service And The Bank You Want To Refer")
