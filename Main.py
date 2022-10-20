@@ -11,7 +11,6 @@ import InterestRate
 
 deposit_rate = InterestRate.get_deposit_rate()
 bank_list = deposit_rate['Bank']
-duration_list = deposit_rate.drop('Bank',axis=1,inplace=False).columns 
 
 st.set_page_config(page_title ="Cash Flow Expection")
 def main():
