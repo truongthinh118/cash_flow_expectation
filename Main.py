@@ -36,11 +36,16 @@ def main():
                 while rate == "":
                     index = index-1
                     rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+                    if index <= -1:
+                        break;
 
-                string = "Deposit rate of {bank} in {duration} is: {rate}%"
-                st.caption(string.format(bank = bank, duration = duration, rate = rate))
-                rate = float(rate.replace(",","."))/100/12
-                expect_fv(rate=rate,duration=duration,pv=pv,pmt=pmt)
+                if rate == "":
+                    st.write("Bank not support")
+                else:
+                    string = "Deposit rate of {bank} in {duration} is: {rate}%"
+                    st.caption(string.format(bank = bank, duration = duration, rate = rate))
+                    rate = float(rate.replace(",","."))/100/12
+                    expect_fv(rate=rate,duration=duration,pv=pv,pmt=pmt)
                 
         with pvtab:
             form = st.form("pvform")
@@ -54,11 +59,16 @@ def main():
                 while rate == "":
                     index = index-1
                     rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+                    if index <= -1:
+                        break;
 
-                string = "Deposit rate of {bank} in {duration} is: {rate}%"
-                st.caption(string.format(bank = bank, duration = duration, rate = rate))
-                rate = float(rate.replace(",","."))/100/12
-                expect_pv(rate=rate,duration=duration,fv=fv,pmt=pmt)
+                if rate == "":
+                    st.write("Bank not support")
+                else:
+                    string = "Deposit rate of {bank} in {duration} is: {rate}%"
+                    st.caption(string.format(bank = bank, duration = duration, rate = rate))
+                    rate = float(rate.replace(",","."))/100/12
+                    expect_pv(rate=rate,duration=duration,fv=fv,pmt=pmt)
     
 def check_interval_value(list, value):
     mapping = []
