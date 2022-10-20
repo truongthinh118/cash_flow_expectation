@@ -40,7 +40,7 @@ def main():
                         break
 
                 if rate == "":
-                    st.write("Bank not support")
+                    st.warning("Bank not support")
                 else:
                     string = "Deposit rate of {bank} in {duration} is: {rate}%"
                     st.caption(string.format(bank = bank, duration = duration, rate = rate))
@@ -63,7 +63,7 @@ def main():
                         break
 
                 if rate == "":
-                    st.write("Bank not support")
+                    st.warning("Bank not support")
                 else:
                     string = "Deposit rate of {bank} in {duration} is: {rate}%"
                     st.caption(string.format(bank = bank, duration = duration, rate = rate))
