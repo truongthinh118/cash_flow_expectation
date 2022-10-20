@@ -1,5 +1,3 @@
-from distutils.dep_util import newer_pairwise
-from re import S
 import streamlit as st
 import numpy_financial as npf
 import ta
@@ -7,56 +5,93 @@ from io import StringIO
 import sys
 import InterestRate
 
-
-
 deposit_rate = InterestRate.get_deposit_rate()
 bank_list = deposit_rate['Bank']
+duration_list =[int(str(col)[0:3]) for col in deposit_rate.drop('Bank',axis=1,inplace=False).columns]
 
-st.set_page_config(page_title ="Cash Flow Expection")
+st.set_page_config(page_title ="Cash Flow Expectation")
 def main():
-    st.title("Cash Flow Expection")
+    st.title("Cash Flow Expectation")
+    st.sidebar.write("Choose The Service And The Bank You Want To Refer")
 
-    st.sidebar.write("Choose the service of bank you want to refer")
-
+   
+    # with st.form("side_form"):
+    #     with st.sidebar:
     service = st.sidebar.selectbox("Service",(["Deposit","Loan"]))
     bank = st.sidebar.selectbox("Bank",(bank_list))
-    
-    st.header(service + " rate of "+ bank)
+           
 
+    submitted = st.sidebar.button(label="Submit",key="side_button")
+
+    if st.session_state.get('button1') != True:
+        st.session_state['button1'] = submitted
+
+
+    if st.session_state['button1']:
+        reference_rate = render_reference_rate(service,bank)
+        fvtab,pvtab = st.tabs(["FV","PV"])
+    
+        with fvtab:
+            form = st.form("fvform")
+            duration = form.slider("Duration - month",1,36)
+            index = check_interval_value(duration_list,duration)
+            rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+            pv = form.number_input("PV",step = 100)
+            pmt = form.number_input("PMT",step = 100)
+            submitted2 = form.form_submit_button(label = "Submit")
+            if(submitted2):
+                while rate == "":
+                    index = index-1
+                    rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+
+                string = "Deposit rate of {bank} in {duration} is: {rate}%"
+                st.caption(string.format(bank = bank, duration = duration, rate = rate))
+                rate = float(rate.replace(",","."))/100/12
+                expect_fv(rate=rate,duration=duration,pv=pv,pmt=pmt)
+                
+        with pvtab:
+            form = st.form("pvform")
+            duration = form.slider("Duration - month",1,36)
+            index = check_interval_value(duration_list,duration)
+            rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+            fv = form.number_input("FV",step = 100)
+            pmt = form.number_input("PMT",step = 100)
+            submitted2 = form.form_submit_button(label = "Submit")
+            if(submitted2):
+                while rate == "":
+                    index = index-1
+                    rate = reference_rate.drop('Bank',axis=1).iat[0,index]
+
+                string = "Deposit rate of {bank} in {duration} is: {rate}%"
+                st.caption(string.format(bank = bank, duration = duration, rate = rate))
+                rate = float(rate.replace(",","."))/100/12
+                expect_pv(rate=rate,duration=duration,fv=fv,pmt=pmt)
+    
+def check_interval_value(list, value):
+    mapping = []
+    for item in list:
+        mapping.append((item,list.index(item)))
+    
+    for scale, output in mapping:
+        if value == scale:
+            return output
+        elif value < scale:
+            return output - 1
+    
+def render_reference_rate(service,bank):
+    st.header(service + " rate of "+ bank)
     reference_rate = deposit_rate.loc[deposit_rate['Bank'] == bank]
     st.write(reference_rate.style.hide_index().to_html(),unsafe_allow_html=True)
     st.write("\n")
-    duration = st.sidebar.selectbox("Duration",(duration_list))
-    nper = int(str(duration)[1:3])
-    rate = reference_rate.loc[1][duration].replace(",",".")
+    return reference_rate
 
-    string = "Deposit rate of {bank} in {duration} is: {rate}%"
-    st.caption(string.format(bank = bank, duration = duration, rate = rate))
-
-    pv = st.sidebar.number_input("pv")
-    pmt = st.sidebar.number_input("pmt")
-    fv = st.sidebar.number_input("fv")
-    st.write("You deposit {pv} to {bank} for {duration} with {rate}%:".format(pv=pv,bank=bank,duration=duration,rate=rate))
-
-    rate = float(rate)/100/12
+def expect_fv(rate,duration,pv,pmt):
+    result = npf.fv(rate = rate, nper = duration , pv = -pv , pmt=-pmt)
+    st.write("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(result=result),unsafe_allow_html=True)
     
-    if(pv==0 and fv ==0):
-        st.warning("PV or FV must be greater than 0")
-    elif (pv>0 and fv ==0):
-        result = npf.fv(rate = rate, nper = nper , pv = -pv , pmt=-pmt)
-        st.write("Total cash that you will be received is: {result}".format(result=result))
-    elif(fv>0 and pv == 0):
-        result = npf.pv(rate=rate,nper=nper,fv = fv,pmt =-pmt)
-        st.write("Total cash that you have to deposit from right now is: {result}".format(result=result))
-    elif(pv > 0 and fv >0 and pmt > 0 ):
-        st.warning("PV - FV - PMT can not greater than 0 at similiar time")
-    elif(pv >= 0 and fv >=0 and pmt == 0):
-        result = npf.pmt(rate=rate, nper=nper,pv=pv,fv=fv)
-        st.write("If you want to have {fv} in {duration} with {pv} from now, you have to deposit {result} per month".format(fv=fv,pv=pv,duration=duration,result=-result))
-
-    
-
-    
+def expect_pv(rate,duration,fv,pmt):
+    result = npf.pv(rate=rate,nper=duration,fv = fv,pmt =-pmt)
+    st.markdown("Total cash that you have to deposit from right now is: <b style=\"color:green;\">{result}</b>".format(result=result),unsafe_allow_html=True)
 
 
 main()
