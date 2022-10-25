@@ -10,13 +10,13 @@ def render_reference_saving():
     bank = st.selectbox("Choose The Bank", (deposit_rate['Bank']))
     reference_rate = get_reference_rate('Saving Rate', bank)
 
-    fvtab, pvtab = st.tabs(["FV", "PV"])
+    fvtab, pvtab = st.tabs(["Expect Cash Flow", "Saving Goal"])
     with fvtab:
         form = st.form("fvform")
-        duration = form.slider("Duration - month", 1, 36)
+        duration = form.slider("Duration - Month", 1, 36)
         rate = get_rate('Saving Rate',reference_rate,duration)
-        pv = form.number_input("PV", step=100)
-        pmt = form.number_input("PMT", step=100)
+        pv = form.number_input("Input Amount You Saving", step=100)
+        pmt = form.number_input("Payment", step=100)
         submitted2 = form.form_submit_button(label="Submit")
         if (submitted2):
             string = "Deposit rate of {bank} in {duration} is: {rate}%"
@@ -27,10 +27,10 @@ def render_reference_saving():
 
     with pvtab:
         form = st.form("pvform")
-        duration = form.slider("Duration - month", 1, 36)
+        duration = form.slider("Duration - Month", 1, 36)
         rate = get_rate('Saving Rate',reference_rate,duration)
-        fv = form.number_input("FV", step=100)
-        pmt = form.number_input("PMT", step=100)
+        fv = form.number_input("Input Your Saving Goal", step=100)
+        pmt = form.number_input("Payment", step=100)
         submitted2 = form.form_submit_button(label="Submit")
         if (submitted2):
             string = "Deposit rate of {bank} in {duration} is: {rate}%"
