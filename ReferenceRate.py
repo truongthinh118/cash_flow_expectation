@@ -88,7 +88,7 @@ def check_interval_value(list, value):
 
 def expect_fv(rate, duration, pv, pmt):
     result = npf.fv(rate=rate, nper=duration, pv=-pv, pmt=-pmt)
-    st.write("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
+    st.markdown("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
         result="{:,}".format(result)), unsafe_allow_html=True)
 
 

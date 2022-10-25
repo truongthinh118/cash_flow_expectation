@@ -12,13 +12,17 @@ def main():
     st.title("Cash Flow Expectation")
 
     with st.sidebar:
-        page = option_menu(None, ["Reference Deposit Rate", "Reference Loan Rate", "Calculate Saving", "Calculate Loan"], icons=[
-                           'piggy-bank', 'credit-card', 'graph-up', 'graph-down'])
+        page = option_menu(None, ['Refer Saving Rate', 'Refer Loan Rate', 'Calculate Saving Cash Flow', 'Calculate Loan Cash Flow'], icons=[
+                           'bank', 'cash-coin', 'piggy-bank', 'credit-card'])
 
-    if page == 'Reference Deposit Rate':
+    if page == 'Refer Saving Rate':
         rr.render_reference_saving()
-    elif page == 'Reference Loan Rate':
+    elif page == 'Refer Loan Rate':
         rr.render_reference_loan()
+    elif page == 'Calculate Saving':
+        st.balloons()
+    elif page == 'Calculate Loan':
+        st.balloons()
 
 
 main()
