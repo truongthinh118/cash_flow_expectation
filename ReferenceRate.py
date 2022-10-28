@@ -1,6 +1,7 @@
 from unicodedata import name
 import streamlit as st
 import pandas as pd
+import altair as alt
 import numpy_financial as npf
 import CrawlRateData as rd
 
@@ -124,17 +125,25 @@ def form_process(service, selected_bank, reference_rate):
     pmt = form.number_input("Payment", step=100)
     submitted2 = form.form_submit_button("Submit")
     if (submitted2):
-        result = expect_fv(expire,selected_bank,rates,periods,pv,pmt)
-        result.index+=1
-        st.line_chart(data = result)
+        result = expect_fv(expire, selected_bank, rates, periods, pv, pmt)
+        # result.index += 1
+
+        line = alt.Chart(result.reset_index().melt('index')).mark_line().encode(
+            alt.X('index', title="Compounding"),
+            alt.Y('value', title='Value', scale=alt.Scale(zero=False)),
+            color='variable'
+        ).properties(
+            height=400, width=650,
+            title='Reference Saving Rate'
+        ).configure_title(
+            fontSize=16
+        ).configure_axis(
+            titleFontSize=14,
+            labelFontSize=12
+        )
+        st.altair_chart(line)
         mini_expander = st.expander('Detail Cash Flow')
         mini_expander.dataframe(result)
-        # for i in range(len(selected_bank)):
-        #     rate = rates[i]
-        #     rate = float(rate.replace(",", "."))/100/12
-        #     period = int(str(periods[i])[0:3])
-        #     if(True):
-        #         expect_fv(rate=rate, duration=expire,period=period, pv=pv, pmt=pmt)
 
 
 def render_reference_loan():
@@ -187,7 +196,7 @@ def check_interval_value(list, value):
             return output - 1
 
 
-def expect_fv(expire,banks,rates,periods,pv,pmt):
+def expect_fv(expire, banks, rates, periods, pv, pmt):
     # result = npf.fv(rate=rate, nper=duration, pv=-pv, pmt=-pmt)
     # st.markdown("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
     #     result="{:,}".format(result)), unsafe_allow_html=True)
@@ -196,25 +205,20 @@ def expect_fv(expire,banks,rates,periods,pv,pmt):
         bank = banks[i]
         period = periods[i]
         rate = rates[i]
-        rate  = rate * period / 12
-        
+        rate = rate * period / 12
+
         fv = []
         fv.append(pv)
         compounding = expire//period
-        for j in range(1,compounding):
-            pre_fv = fv[j-1]
-            tem_fv = (pre_fv * ((1 + rate)**j))+pmt 
-            fv.append(tem_fv)
+        for j in range(compounding+1):
+            pre_fv = (fv[0]if j == 0 else fv[j-1])
+            tem_fv = (pre_fv * ((1 + rate)**j))+pmt
+            if(j!=0):
+                fv.append(tem_fv)
+
         df[bank] = fv
+        # df = df.fillna(0)
     return df
-            
-
-
-
-    
-
-
-    
 
 
 def expect_pv(rate, duration, fv, pmt):
