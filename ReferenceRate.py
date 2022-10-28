@@ -1,3 +1,4 @@
+from unicodedata import name
 import streamlit as st
 import pandas as pd
 import numpy_financial as npf
@@ -118,12 +119,16 @@ def form_process(service, selected_bank, reference_rate):
             periods.append(int(str(period)[0:3]))
             rate = get_rate(service, reference_rate, bank,
                             period_list.index(period))
-            rates.append(rate)
+            rates.append(float(rate.replace(",", "."))/100)
         pv = form.number_input("Input Amount You Saving", step=100)
     pmt = form.number_input("Payment", step=100)
     submitted2 = form.form_submit_button("Submit")
     if (submitted2):
-        expect_fv(expire,selected_bank,rates,periods,pv,pmt)
+        result = expect_fv(expire,selected_bank,rates,periods,pv,pmt)
+        result.index+=1
+        st.line_chart(data = result)
+        mini_expander = st.expander('Detail Cash Flow')
+        mini_expander.dataframe(result)
         # for i in range(len(selected_bank)):
         #     rate = rates[i]
         #     rate = float(rate.replace(",", "."))/100/12
@@ -186,14 +191,22 @@ def expect_fv(expire,banks,rates,periods,pv,pmt):
     # result = npf.fv(rate=rate, nper=duration, pv=-pv, pmt=-pmt)
     # st.markdown("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
     #     result="{:,}".format(result)), unsafe_allow_html=True)
-    df = pd.DataFrame
+    df = pd.DataFrame()
     for i in range(len(banks)):
         bank = banks[i]
-        rate = rates[i]
         period = periods[i]
-
-        cycle_time = expire//period
-        # for j in range(1,cycle_time):
+        rate = rates[i]
+        rate  = rate * period / 12
+        
+        fv = []
+        fv.append(pv)
+        compounding = expire//period
+        for j in range(1,compounding):
+            pre_fv = fv[j-1]
+            tem_fv = (pre_fv * ((1 + rate)**j))+pmt 
+            fv.append(tem_fv)
+        df[bank] = fv
+    return df
             
 
 
