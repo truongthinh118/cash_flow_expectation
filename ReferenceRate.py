@@ -1,4 +1,3 @@
-from typing import Optional
 import streamlit as st
 import pandas as pd
 import numpy_financial as npf
@@ -16,7 +15,7 @@ def render_refernce_page(service):
         df = loan_rate
     bank_list = (df['Bank'])
 
-    expander = st.expander('Reference Saving Rate Detail')
+    expander = st.expander('Reference '+service+' Rate Detail')
     render_expander(expander, df)
 
     col1, col2 = st.columns(2)
@@ -110,13 +109,13 @@ def form_process(service, selected_bank, reference_rate):
     pmt = 0
 
     if service == 'Saving':
-        period_list = list(deposit_rate.drop(
+        period_list = list(reference_rate.drop(
             'Bank', axis=1, inplace=False).columns)
         for i in range(len(selected_bank)):
             bank = selected_bank[i]
             period = form.selectbox(
                 "Period for Saving In "+bank, (period_list))
-            periods.append(period)
+            periods.append(int(str(period)[0:3]))
             rate = get_rate(service, reference_rate, bank,
                             period_list.index(period))
             rates.append(rate)
@@ -124,12 +123,13 @@ def form_process(service, selected_bank, reference_rate):
     pmt = form.number_input("Payment", step=100)
     submitted2 = form.form_submit_button("Submit")
     if (submitted2):
-        for i in range(len(selected_bank)):
-            rate = rates[i]
-            rate = float(rate.replace(",", "."))/100/12
-            period = int(str(periods[i])[0:3])
-            if(True):
-                expect_fv(rate=rate, duration=period, pv=pv, pmt=pmt)
+        expect_fv(expire,selected_bank,rates,periods,pv,pmt)
+        # for i in range(len(selected_bank)):
+        #     rate = rates[i]
+        #     rate = float(rate.replace(",", "."))/100/12
+        #     period = int(str(periods[i])[0:3])
+        #     if(True):
+        #         expect_fv(rate=rate, duration=expire,period=period, pv=pv, pmt=pmt)
 
 
 def render_reference_loan():
@@ -182,10 +182,26 @@ def check_interval_value(list, value):
             return output - 1
 
 
-def expect_fv(rate, duration, pv, pmt):
-    result = npf.fv(rate=rate, nper=duration, pv=-pv, pmt=-pmt)
-    st.markdown("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
-        result="{:,}".format(result)), unsafe_allow_html=True)
+def expect_fv(expire,banks,rates,periods,pv,pmt):
+    # result = npf.fv(rate=rate, nper=duration, pv=-pv, pmt=-pmt)
+    # st.markdown("Total cash that you will be received is:  <b style=\"color:green;\">{result}</b>".format(
+    #     result="{:,}".format(result)), unsafe_allow_html=True)
+    df = pd.DataFrame
+    for i in range(len(banks)):
+        bank = bank[i]
+        rate = rates[i]
+        period = periods[i]
+
+        cycle_time = expire//period
+        for j in range(1,cycle_time):
+            
+
+
+
+    
+
+
+    
 
 
 def expect_pv(rate, duration, fv, pmt):
