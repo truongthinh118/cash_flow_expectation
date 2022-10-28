@@ -188,7 +188,7 @@ def expect_fv(expire,banks,rates,periods,pv,pmt):
     #     result="{:,}".format(result)), unsafe_allow_html=True)
     df = pd.DataFrame
     for i in range(len(banks)):
-        bank = bank[i]
+        bank = banks[i]
         rate = rates[i]
         period = periods[i]
 
