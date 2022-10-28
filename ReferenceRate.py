@@ -193,7 +193,7 @@ def expect_fv(expire,banks,rates,periods,pv,pmt):
         period = periods[i]
 
         cycle_time = expire//period
-        for j in range(1,cycle_time):
+        # for j in range(1,cycle_time):
             
 
 
