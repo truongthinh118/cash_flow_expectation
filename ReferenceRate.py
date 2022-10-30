@@ -3,6 +3,7 @@ import pandas as pd
 import altair as alt
 import numpy_financial as npf
 import CrawlRateData as rd
+from collections import defaultdict
 
 deposit_rate = rd.get_deposit_rate()
 loan_rate = rd.get_loan_rate()
@@ -199,9 +200,6 @@ def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
 
     return None
     
-    
-
-from collections import defaultdict
 def list_duplicates(seq):
     tally = defaultdict(list)
     for i,item in enumerate(seq):
