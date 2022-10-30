@@ -1,4 +1,4 @@
-from unicodedata import name
+from cgitb import reset
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -33,8 +33,7 @@ def render_refernce_page(service):
 
     if st.session_state['button1']:
         container.empty()
-        bank2 = col1.selectbox("", (bank_list.drop(
-            df.loc[bank_list == bank].index, axis=0, inplace=False)), label_visibility='collapsed')
+        bank2 = col1.selectbox("", (bank_list), label_visibility='collapsed')
         selected_bank.append(bank2)
     reference_rate = get_reference_rate(service, selected_bank)
 
@@ -68,7 +67,7 @@ def form_process(service, selected_bank, reference_rate):
         for i in range(len(selected_bank)):
             bank = selected_bank[i]
             period = form.selectbox(
-                "Period for Saving In "+bank, (period_list))
+                "Period for Saving In "+bank+str(i+1), (period_list))
             periods.append(int(str(period)[0:3]))
             rate = get_rate(service, reference_rate, bank,
                             period_list.index(period))
@@ -80,8 +79,8 @@ def form_process(service, selected_bank, reference_rate):
         result = expect_fv(expire, selected_bank, rates, periods, pv, pmt)
         # result.index += 1
 
-        line = alt.Chart(result.reset_index().melt('index')).mark_line().encode(
-            alt.X('index', title="Compounding"),
+        line = alt.Chart(result.reset_index().melt('index')).mark_line(interpolate='step-after',point=True).encode(
+            alt.X('index:Q', title="Months",scale=alt.Scale(domain=[0,expire], nice=False)),
             alt.Y('value', title='Value', scale=alt.Scale(zero=False)),
             color='variable'
         ).properties(
@@ -112,8 +111,7 @@ def get_reference_rate(service, selected_bank):
     else:
         reference_rate = loan_rate.loc[loan_rate['Bank'].isin(selected_bank)]
 
-    st.write(reference_rate.style.hide_index().to_html(),
-             unsafe_allow_html=True)
+    st.dataframe(reference_rate.style.hide_index())
     st.write("\n")
     return reference_rate
 
@@ -142,23 +140,30 @@ def check_interval_value(list, value):
 
 def expect_fv(expire, banks, rates, periods, pv, pmt):
     df = pd.DataFrame()
+    result = []
+    if(banks.count(banks[0])>1):
+        banks[0] = banks[0]+"_1"
+        banks[1]= banks[1]+"_2"
     for i in range(len(banks)):
         bank = banks[i]
         period = periods[i]
         rate = rates[i]
         rate = rate * period / 12
 
+        
         fv = []
         fv.append(pv)
-        compounding = expire//period
-        for j in range(compounding+1):
+        for j in range(expire+1):
             pre_fv = (fv[0]if j == 0 else fv[j-1])
-            tem_fv = (pre_fv * ((1 + rate)**j))+pmt
+            tem_fv = pre_fv
+            if(j%period==0):
+                tem_fv = (pre_fv * ((1 + rate)**j))+pmt
             if(j!=0):
                 fv.append(tem_fv)
-
-        df[bank] = fv
-        # df = df.fillna(0)
+            
+        result.append(fv)
+    df = pd.DataFrame(result).T
+    df.columns = banks
     return df
 
 
