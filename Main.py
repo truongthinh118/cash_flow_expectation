@@ -2,11 +2,11 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 import ReferenceRate as rr
 
-st.set_page_config(page_title="Cash Flow Expectation",
-                   page_icon="💲", initial_sidebar_state="expanded")
-
 
 def main():
+    st.set_page_config(page_title="Cash Flow Expectation",
+                   page_icon="💲", initial_sidebar_state="expanded")
+
     st.title("Cash Flow Expectation")
 
     with st.sidebar:
