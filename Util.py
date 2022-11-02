@@ -1,6 +1,8 @@
-import streamlit as st
-import altair as alt
 from collections import defaultdict
+
+import altair as alt
+import streamlit as st
+
 import ReferenceRate as rr
 
 
@@ -12,9 +14,6 @@ def render_df(container, df):
 
 
 def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
-    if len(selected_bank) == 0:
-        rr.reload_page = True
-        return 'Please choose another period or another bank'
     dup_bank_index = list_duplicates(selected_bank)
     for bank_name, index_list in dup_bank_index:
         for index in index_list:
@@ -36,7 +35,7 @@ def list_duplicates(seq):
     return sorted((key, locs) for key, locs in tally.items()
                   if len(locs) > 1)
 
-
+@st.experimental_memo
 def render_chart(df, expired):
     line = alt.Chart(df.reset_index().melt('index')).mark_line(interpolate='step-after', point=True).encode(
         alt.X('index:Q', title="Months", scale=alt.Scale(domain=[0,expired])),

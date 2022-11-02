@@ -1,10 +1,12 @@
-import streamlit as st
+import json
+import urllib.request
+
 import pandas as pd
 import requests
-import json
+import streamlit as st
 from bs4 import BeautifulSoup
-import urllib.request
 from html_table_parser.parser import HTMLTableParser
+
 
 @st.experimental_memo
 def get_deposit_rate():
