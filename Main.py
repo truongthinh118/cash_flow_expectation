@@ -7,6 +7,7 @@ def main():
     st.set_page_config(page_title="Cash Flow Expectation",
                    page_icon="💲", initial_sidebar_state="expanded")
 
+    
     st.title("Cash Flow Expectation")
 
     with st.sidebar:
