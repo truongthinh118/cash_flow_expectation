@@ -3,6 +3,7 @@ import numpy_financial as npf
 import pandas as pd
 import streamlit as st
 
+import CalculateFlow as cf
 import CrawlRateData as rd
 import Util as ut
 
@@ -10,7 +11,11 @@ reload_page = False
 
 
 def render_reference_saving():
-    render_refernce_page('Saving')
+    selected_bank, reference_rate= render_refernce_page('Saving')
+    fvtab, pvtab = st.tabs(["Expect Cash Flow", "Saving Goal"])
+    with fvtab:
+        form_process('Saving', selected_bank, reference_rate)
+
 
 
 def render_reference_loan():
@@ -45,11 +50,9 @@ def render_refernce_page(service):
                                label_visibility='collapsed')
         selected_bank.append(bank2)
     reference_rate = get_reference_rate(service, df, selected_bank)
+    return selected_bank, reference_rate
 
-    fvtab, pvtab = st.tabs(["Expect Cash Flow", "Saving Goal"])
-    with fvtab:
-        form_process(service, selected_bank, reference_rate)
-
+    
 
 def form_process(service, selected_bank, reference_rate):
     form = st.form("form")
@@ -108,7 +111,7 @@ def form_process(service, selected_bank, reference_rate):
                             rates.append(float(rate_item)/100)
                             banks.append(bank)
                             periods.append(period_item)
-            result = expect_fv(expire, banks, rates, periods, pv, pmt)
+            result = cf.expect_fv(expire, banks, rates, periods, pv, pmt)
 
             ut.render_chart(result, expire)
 
@@ -153,36 +156,7 @@ def get_rate(service, reference_rate, bank, period_index):
 #         elif value < scale:
 #             return output - 1
 
-@st.experimental_memo
-def expect_fv(expire, banks, rates, periods, pv, pmt):
-    df = pd.DataFrame()
-    result = []
 
-    for i in range(len(banks)):
-        bank = banks[i]
-        period = periods[i]
-
-        if (banks.count(bank) > 1):
-            banks[i] += "_"+period
-            index = banks.index(bank)
-            banks[index] += "_"+periods[index]
-        period = int(str(period)[0:2])
-
-        rate = rates[i]
-        rate = (rate / 12)*period
-
-        fv = []
-
-        for j in range(expire+1):
-            # pre_fv = (pv if j == 0 else fv[j-1])
-            tem_fv = fv[j-1] if (j % period != 0) else (pv *
-                                                        ((1 + rate)**(j//period)))+pmt
-            fv.append(tem_fv)
-
-        result.append(fv)
-    df = pd.DataFrame(result).T
-    df.columns = banks
-    return df
 
 
 def expect_pv(rate, duration, fv, pmt):
