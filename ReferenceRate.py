@@ -11,12 +11,41 @@ reload_page = False
 
 
 def render_reference_saving():
-    selected_bank, reference_rate= render_refernce_page('Saving')
-    fvtab, pvtab = st.tabs(["Expect Cash Flow", "Saving Goal"])
+    selected_bank, reference_rate = render_refernce_page('Saving')
+    
+    fvtab, pmttab = st.tabs(["Expect Cash Flow", "Saving Goal"])
+
     with fvtab:
-        form_process('Saving', selected_bank, reference_rate)
+        col1, col2 = st.columns([4, 7])
+        with col1:
+            expired, result, banks, periods, rates, warning = form_process(
+                'Saving', selected_bank, reference_rate, 'fv')
+        if st.session_state['form_submit_button1']:
+            if warning is not None:
+                col2.warning(warning)
+            else:
+                col2.altair_chart(ut.generate_fv_chart(result, expired))
+                mini_expander = st.expander('Detail Cash Flow') if len(selected_bank) <5 else col2.expander('Detail Cash Flow')
+                for i in range(len(banks)):
+                    mini_expander.write('Rate of '+banks[i]+' is: <b>'+str(
+                        rates[i]*100)+'</b>% (compounding '+str(periods[i])+')', unsafe_allow_html=True)
+                mini_expander.dataframe(result.T)
 
-
+    with pmttab:
+        col1, col2 = st.columns([4, 7])
+        with col1:
+            expired, result, banks, periods, rates, warning = form_process(
+                'Saving', selected_bank, reference_rate, 'pmt')
+        if st.session_state['form_submit_button2']:
+            if warning is not None:
+                col2.warning(warning)
+            else:
+                col2.altair_chart(ut.generate_pmt_chart(result))
+                mini_expander = st.expander('Detail') if len(selected_bank) <5 else col2.expander('Detail')
+                for i in range(len(banks)):
+                    mini_expander.write('Rate of '+banks[i]+' is: <b>'+str(
+                        rates[i]*100)+'</b>% (compounding '+str(periods[i])+')', unsafe_allow_html=True)
+                mini_expander.dataframe(result)
 
 def render_reference_loan():
     render_refernce_page("Loan")
@@ -28,41 +57,30 @@ def render_refernce_page(service):
         df = rd.get_deposit_rate()
     else:
         df = rd.get_loan_rate()
-    bank_list = (df['Bank'])
+    bank_list = list(df['Bank'])
 
     expander = st.expander('Reference '+service+' Rate Detail')
     ut.render_df(expander, df)
 
-    col1, col2 = st.columns(2)
-    bank = col1.selectbox("Choose The Bank", (bank_list))
-    selected_bank = [bank]
-    col2.write("\n")
-    col2.write("\n")
-    # onclick = col2.button("+")
-    container = col2.container().empty()
-
-    if st.session_state.get('button1') != True:
-        st.session_state['button1'] = container.button("+")
-
-    if st.session_state['button1']:
-        container.empty()
-        bank2 = col1.selectbox("Bank", (bank_list),
-                               label_visibility='collapsed')
-        selected_bank.append(bank2)
+    col1, col2 = st.columns([6, 4])
+    selected_bank = col1.multiselect(
+        "Choose The Bank", bank_list, [bank_list[0]])
+   
     reference_rate = get_reference_rate(service, df, selected_bank)
     return selected_bank, reference_rate
 
-    
 
-def form_process(service, selected_bank, reference_rate):
-    form = st.form("form")
-    expire = form.number_input("Expire In (Month)", step=1, min_value=1)
-
+def form_process(service, selected_bank, reference_rate, key):
+    form = st.form(key)
+    result = pd.DataFrame()
+    expired = form.number_input("Expired In - Months", step=1, min_value=1)
+    banks = []
     periods = []
     rates = []
     pv = None
     fv = None
     pmt = None
+    warning = None
 
     period_list = list(reference_rate.drop(
         'Bank', axis=1, inplace=False).columns)
@@ -70,57 +88,90 @@ def form_process(service, selected_bank, reference_rate):
     for i in range(len(selected_bank)):
         bank = selected_bank[i]
         period = form.selectbox(
-            'Period for '+service+' In '+bank, (period_list), key=i)
+            'Period for '+service+' In '+bank, (period_list), key=key+str(i))
         periods.append(period)
 
-    pv = form.number_input("Input Amount You Saving", step=100, min_value=0)
-    pmt = form.number_input("Payment", step=100, min_value=0)
+    for i in range(len(selected_bank)):
+        bank = selected_bank[i]
+        rate = get_rate(service, reference_rate, bank,
+                        period_list.index(period))
+        if not np.isnan(rate):
+            rates.append(float(rate)/100)
+            banks.append(bank)
+
+    if key == 'pmt':
+        fv = form.number_input("Input Your Saving Goal", step=100, min_value=0)
+
+    pv = form.number_input("Input Amount You Have", step=100, min_value=0)
+
+    if (key == 'fv'):
+        pmt = form.number_input("Payment", step=100, min_value=0)
+    
     submitted2 = form.form_submit_button("Submit")
 
-    if st.session_state.get('form_submit_button') != True:
-        st.session_state['form_submit_button'] = submitted2
+    if key == 'fv':
+        if st.session_state.get('form_submit_button1') != True:
+            st.session_state['form_submit_button1'] = submitted2
 
-    if st.session_state['form_submit_button']:
-        banks = []
-        for i in range(len(selected_bank)):
-            bank = selected_bank[i]
-            rate = get_rate(service, reference_rate, bank,
-                            period_list.index(period))
-            if not np.isnan(rate):
-                rates.append(float(rate)/100)
-                banks.append(bank)
+        if st.session_state['form_submit_button1']:
+            return fv_form(
+                service, reference_rate, expired, banks,rates, period_list, periods, pv, fv, pmt)
+    if key == 'pmt':
+        if st.session_state.get('form_submit_button2') != True:
+            st.session_state['form_submit_button2'] = submitted2
 
-        warning = ut.valid_input(expire, banks, rates, periods, pv, fv, pmt)
-        if warning is not None:
-            st.warning(warning)
-        else:
-            # result = expect_fv(expire, banks, rates, periods, pv, pmt)
-            # result.index += 1
-            if not st.session_state['button1']:
-                checkbox = st.checkbox(
-                    'Compare to other periods', value=False, key='compare')
-                if checkbox:
-                    bank = banks[0]
-                    rates = []
-                    banks = []
-                    periods = []
-                    for period_item in period_list:
+        if st.session_state['form_submit_button2']:
+            return pmt_form(service, reference_rate, expired, banks,rates, period_list, periods, pv, fv, pmt)
+    
+    return expired, result, banks, periods, rates, warning
+
+def fv_form(service, reference_rate, expired, banks,rates, period_list, periods, pv, fv, pmt):
+    
+    result = pd.DataFrame()
+    
+    warning = ut.valid_input(expired, banks, rates, periods, pv, fv, pmt)
+    if warning is None:
+        if len(banks) == 1:
+            checkbox = st.checkbox(
+                'Compare to other periods', value=False,key='fv')
+            if checkbox:
+                bank = banks[0]
+                rates = []
+                banks = []
+                periods = []
+                for period_item in period_list:
+                    if int(str(period_item)[0:2])<=expired:
                         rate_item = get_rate(service, reference_rate, bank,
-                                             period_list.index(period_item))
+                                            period_list.index(period_item))
                         if not np.isnan(rate_item):
                             rates.append(float(rate_item)/100)
                             banks.append(bank)
                             periods.append(period_item)
-            result = cf.expect_fv(expire, banks, rates, periods, pv, pmt)
+        result = cf.expect_fv(expired, banks, rates, periods, pv, pmt)
+    return expired, result, banks, periods, rates, warning
 
-            ut.render_chart(result, expire)
+def pmt_form(service, reference_rate, expired, banks,rates, period_list, periods, pv, fv,pmt):
+    result = []
 
-            mini_expander = st.expander('Detail Cash Flow')
-            for i in range(len(banks)):
-                mini_expander.write('Rate of '+banks[i]+' is: <b>'+str(
-                    rates[i]*100)+'</b>% (compounding '+str(periods[i])+')', unsafe_allow_html=True)
-            mini_expander.dataframe(result.T)
-
+    warning = ut.valid_input(expired, banks, rates, periods, pv, fv,None)
+    if warning is None:
+        if len(banks) == 1:
+            checkbox = st.checkbox('Compare to other periods', value=False, key='pmt')
+            if checkbox:
+                bank = banks[0]
+                rates = []
+                banks = []
+                periods = []
+                for period_item in period_list:
+                    if int(str(period_item)[0:2])<=expired:
+                        rate_item = get_rate(service, reference_rate, bank,
+                                            period_list.index(period_item))
+                        if not np.isnan(rate_item):
+                            rates.append(float(rate_item)/100)
+                            banks.append(bank)
+                            periods.append(period_item)
+        result = cf.calculate_pmt(expired, banks, rates, periods, pv, fv)
+    return expired, result, banks, periods, rates, warning
 
 def get_reference_rate(service, df, selected_bank):
     st.header(service + " Rate of " + ", ".join(selected_bank))
@@ -130,7 +181,8 @@ def get_reference_rate(service, df, selected_bank):
     else:
         reference_rate = df.loc[df['Bank'].isin(selected_bank)]
 
-    ut.render_df(st, reference_rate)
+    col1, col2 = st.columns([6, 4])
+    ut.render_df(col1, reference_rate)
     return reference_rate
 
 
@@ -155,8 +207,6 @@ def get_rate(service, reference_rate, bank, period_index):
 #             return output
 #         elif value < scale:
 #             return output - 1
-
-
 
 
 def expect_pv(rate, duration, fv, pmt):
