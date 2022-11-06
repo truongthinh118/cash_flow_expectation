@@ -91,15 +91,12 @@ def form_process(service, selected_bank, reference_rate, key):
         period = form.selectbox(
             'Period for '+service+' In '+bank, (period_list), key=key+str(i))
         periods.append(period)
-
-    for i in range(len(selected_bank)):
-        bank = selected_bank[i]
         rate = get_rate(service, reference_rate, bank,
                         period_list.index(period))
         if not np.isnan(rate):
             rates.append(float(rate)/100)
             banks.append(bank)
-
+        
     if key == 'pmt':
         fv = form.number_input("Input Your Saving Goal", step=100, min_value=0)
 
