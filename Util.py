@@ -34,6 +34,7 @@ def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
 
     return None
 
+
 def list_duplicates(seq):
     tally = defaultdict(list)
     for i, item in enumerate(seq):
@@ -41,11 +42,13 @@ def list_duplicates(seq):
     return sorted((key, locs) for key, locs in tally.items()
                   if len(locs) > 1)
 
-def get_dup_index(key,seq):
+def get_dup_index(key, seq):
     dup_list = list_duplicates(seq)
     for bank_name, index_list in dup_list:
         if key == bank_name:
-            return index_list
+            return list(index_list)
+        else:
+            return None
 
 
 @st.experimental_memo
@@ -71,8 +74,8 @@ def generate_pmt_chart(df):
     bar = alt.Chart(df.melt('Bank')).mark_bar().encode(
         x=alt.X('variable', axis=alt.Axis(title=None)) if len(df.index) == 1 else
         alt.X('Bank', axis=alt.Axis(title=None)),
-        y=alt.Y('sum(value)'),
-        color=alt.Color('variable:N', title=None),
+        y=alt.Y('value:Q',stack=None),
+        color=alt.Color('variable', title=None),
         # column=alt.Column('Bank', header=alt.Header(
         #     titleOrient='bottom', labelOrient='bottom'), title=None)
     ).properties(

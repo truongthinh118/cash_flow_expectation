@@ -25,11 +25,11 @@ def expect_fv(expire, banks, rates, periods, pv, pmt):
 
         fv = [pv]
 
-        for j in range(1,expire+1):
+        for j in range(1, expire+1):
 
             # tem_fv = fv[j-1] if j % period != 0 else fv[j-1] * (1 + rate)**(j//period) + pmt
 
-            tem_fv = fv[j-1] if j % period != 0 else npf.fv(rate,j//period,-pmt,-pv)
+            tem_fv = fv[j - 1] if j % period != 0 else npf.fv(rate, j//period, -pmt, -pv)
             fv.append(tem_fv)
 
         result.append(fv)
@@ -41,25 +41,22 @@ def expect_fv(expire, banks, rates, periods, pv, pmt):
 @st.experimental_memo
 def calculate_pmt(expired, banks, rates, periods, pv, fv):
     df = pd.DataFrame({
-        'Bank':[],
-        'Pmt':[],
-        'Deposit Amout':[],
+        'Bank': [],
+        'Pmt': [],
+        'Deposit Amout': [],
         # 'Return':[]
     })
-    
 
     for i in range(len(banks)):
         bank = banks[i]
         period = periods[i]
 
-        if (banks.count(bank) > 1):
-            # banks[i] += "_"+period
-            dup_bank_index = ut.get_dup_index(bank,banks)
+        dup_bank_index = ut.get_dup_index(bank, banks)
+        if dup_bank_index is not None and len(dup_bank_index)>1:
+
             for index in dup_bank_index:
                 banks[index] += "_"+periods[index]
-            
-            # index = banks.index(bank)
-            
+
         period = int(str(period)[0:2])
 
         rate = rates[i]
@@ -69,11 +66,10 @@ def calculate_pmt(expired, banks, rates, periods, pv, fv):
         pmt = npf.pmt(rate, nper, pv, -fv)
 
         deposit_amout = pv
-        for i in range(nper):
-            deposit_amout = deposit_amout + npf.pv(rate,nper= i,pmt = 0,fv = -pmt)
-        # return_amount = npf.pv(rate,nper = nper,pmt = 0,fv= -fv) - deposit_amout
-        # result.append(return_amount)
-        df.loc[len(df.index)] = [bank,pmt,deposit_amout]
+        for j in range(nper):
+            deposit_amout = deposit_amout + npf.pv(rate, nper=j, pmt=0, fv=-pmt)
+        
+        df.loc[len(df.index)] = [banks[i], pmt, deposit_amout]
     return df
 
 
