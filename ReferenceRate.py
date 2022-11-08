@@ -55,7 +55,7 @@ def render_reference_loan():
     col1, col2 = st.columns(2)
 
     with col1:
-        expired, result, banks, rates, warning = form_process(
+        expired, result, banks,periods, rates, warning = form_process(
             'Loan', selected_bank, reference_rate, 'loan')
     if st.session_state['form_submit_button3']:
             if warning is not None:
@@ -230,7 +230,7 @@ def loan_form(service, expired, banks, rates, pv):
         result = result.T.reset_index()
         result.columns = ['Bank','FV','PMT']
         
-    return expired, result, banks, rates, warning
+    return expired, result, banks,dummy_periods, rates, warning
 
 
 def get_reference_rate(service, df, selected_bank):
