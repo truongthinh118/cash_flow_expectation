@@ -6,11 +6,11 @@ import streamlit as st
 import ReferenceRate as rr
 
 
-def render_df(container, df):
+def render_df(df):
     float_column = list(df.drop('Bank', axis=1, inplace=False))
-    container.dataframe(df.set_index('Bank', inplace=False).style.format(
+    st.dataframe(df.set_index('Bank', inplace=False).style.format(
         subset=float_column, formatter="{:.2f}"), use_container_width=True)
-    container.write("\n")
+    st.write("\n")
 
 
 def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
@@ -56,10 +56,11 @@ def generate_fv_chart(df, expired):
     line = alt.Chart(df.reset_index().melt('index')).mark_line(interpolate='step-after', point=True).encode(
         alt.X('index:Q', title="Months", scale=alt.Scale(
             domain=[0, expired]), axis=alt.Axis(tickMinStep=1)),
-        alt.Y('value', title='Value', scale=alt.Scale(zero=False)),
+        alt.Y('sum(value)', title='Value', scale=alt.Scale(zero=False)),
         color=alt.Color('variable', title='Bank')
     ).properties(
-        height=500, width=750,
+        height=450,
+        # width=750,
         title='Reference Saving Rate'
     ).configure_title(
         fontSize=24
@@ -71,11 +72,11 @@ def generate_fv_chart(df, expired):
 
 
 def generate_pmt_chart(df):
-    bar = alt.Chart(df.melt('Bank')).mark_bar().encode(
+    bar = alt.Chart(df.melt('Bank')).mark_bar(opacity=0.6).encode(
         x=alt.X('variable', axis=alt.Axis(title=None)) if len(df.index) == 1 else
-        alt.X('Bank', axis=alt.Axis(title=None)),
-        y=alt.Y('value:Q',stack=None),
-        color=alt.Color('variable', title=None),
+        alt.X('Bank'),
+        y=alt.Y('value:Q',stack=False),
+        color=alt.Color('variable:N',scale= alt.Scale(range= ["#675193", "#ca8861"]),title=None),
         # column=alt.Column('Bank', header=alt.Header(
         #     titleOrient='bottom', labelOrient='bottom'), title=None)
     ).properties(

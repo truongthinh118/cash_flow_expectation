@@ -6,7 +6,7 @@ import Util as ut
 
 
 @st.experimental_memo
-def expect_fv(expire, banks, rates, periods, pv, pmt):
+def calculate_fv(expire, banks, rates, periods, pv, pmt):
     df = pd.DataFrame()
     result = []
 
@@ -72,6 +72,14 @@ def calculate_pmt(expired, banks, rates, periods, pv, fv):
         df.loc[len(df.index)] = [banks[i], pmt, deposit_amout]
     return df
 
+@st.experimental_memo
+def calculate_loan_pmt(expired, banks, rates, fv_list):
+    result = []
+    for i in range(len(banks)):
+        fv = fv_list[i]
+        pmt = fv/expired
+        result.append(pmt)
+    return result
 
 def render_calculate_page():
     saving_tab, loan_tab = st.tabs(['Saving Goal', 'Loan'])

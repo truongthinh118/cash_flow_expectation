@@ -22,7 +22,8 @@ def render_reference_saving():
             if warning is not None:
                 col2.warning(warning)
             else:
-                col2.altair_chart(ut.generate_fv_chart(result, expired))
+                col2.altair_chart(ut.generate_fv_chart(
+                    result, expired), use_container_width=True)
                 mini_expander = st.expander('Detail Cash Flow') if len(
                     selected_bank) < 5 else col2.expander('Detail Cash Flow')
                 for i in range(len(banks)):
@@ -39,7 +40,8 @@ def render_reference_saving():
             if warning is not None:
                 col2.warning(warning)
             else:
-                col2.altair_chart(ut.generate_pmt_chart(result))
+                col2.altair_chart(ut.generate_pmt_chart(
+                    result), use_container_width=True)
                 mini_expander = st.expander('Detail') if len(
                     selected_bank) < 5 else col2.expander('Detail')
                 for i in range(len(banks)):
@@ -49,8 +51,17 @@ def render_reference_saving():
 
 
 def render_reference_loan():
-    render_refernce_page("Loan")
+    selected_bank, reference_rate = render_refernce_page("Loan")
+    col1, col2 = st.columns(2)
 
+    with col1:
+        expired, result, banks, rates, warning = form_process(
+            'Loan', selected_bank, reference_rate, 'loan')
+    if st.session_state['form_submit_button3']:
+            if warning is not None:
+                col2.warning(warning)
+            else:
+                col2.write(result)
 
 def render_refernce_page(service):
     df = pd.DataFrame
@@ -61,7 +72,8 @@ def render_refernce_page(service):
     bank_list = list(df['Bank'])
 
     expander = st.expander('Reference '+service+' Rate Detail')
-    ut.render_df(expander, df)
+    with expander:
+        ut.render_df(df)
 
     col1, col2 = st.columns([6, 4])
     selected_bank = col1.multiselect(
@@ -88,23 +100,32 @@ def form_process(service, selected_bank, reference_rate, key):
 
     for i in range(len(selected_bank)):
         bank = selected_bank[i]
-        period = form.selectbox(
-            'Period for '+service+' In '+bank, (period_list), key=key+str(i))
-        periods.append(period)
-        rate = get_rate(service, reference_rate, bank,
-                        period_list.index(period))
+        rate = 0
+        if service == 'Saving':
+            period = form.selectbox(
+                'Period for '+service+' In '+bank, (period_list), key=key+str(i))
+            periods.append(period)
+            rate = get_rate(service, reference_rate, bank,
+                            period_list.index(period))
+        else:
+            rate = get_rate(service, reference_rate, bank, None)
+
         if not np.isnan(rate):
             rates.append(float(rate)/100)
             banks.append(bank)
-        
+
     if key == 'pmt':
         fv = form.number_input("Input Your Saving Goal", step=100, min_value=0)
 
-    pv = form.number_input("Input Amount You Have", step=100, min_value=0)
+    if service == 'Saving':
+        pv = form.number_input("Input Amount You Have", step=100, min_value=0)
 
-    if (key == 'fv'):
+    if key == 'fv':
         pmt = form.number_input("Payment", step=100, min_value=0)
 
+    if service == 'Loan':
+        pv = form.number_input("Amount You Want To Loan",
+                               step=100, min_value=0)
     submitted2 = form.form_submit_button("Submit")
 
     if key == 'fv':
@@ -121,6 +142,12 @@ def form_process(service, selected_bank, reference_rate, key):
         if st.session_state['form_submit_button2']:
             return pmt_form(service, reference_rate, expired, banks, rates, period_list, periods, pv, fv, pmt)
 
+    if key == 'loan':
+        if st.session_state.get('form_submit_button3') != True:
+            st.session_state['form_submit_button3'] = submitted2
+
+        if st.session_state['form_submit_button3']:
+            return loan_form(service,expired,banks,rates,pv)
     return expired, result, banks, periods, rates, warning
 
 
@@ -131,7 +158,8 @@ def fv_form(service, reference_rate, expired, banks, rates, period_list, periods
     warning = ut.valid_input(expired, banks, rates, periods, pv, fv, pmt)
     if warning is None:
         if len(banks) == 1:
-            checkbox = st.checkbox('Compare to other periods', value=False, key='fv')
+            checkbox = st.checkbox(
+                'Compare to other periods', value=False, key='fv')
             if checkbox:
                 bank = banks[0]
                 rates = []
@@ -145,7 +173,7 @@ def fv_form(service, reference_rate, expired, banks, rates, period_list, periods
                             rates.append(float(rate_item)/100)
                             banks.append(bank)
                             periods.append(period_item)
-        result = cf.expect_fv(expired, banks, rates, periods, pv, pmt)
+        result = cf.calculate_fv(expired, banks, rates, periods, pv, pmt)
     return expired, result, banks, periods, rates, warning
 
 
@@ -155,7 +183,8 @@ def pmt_form(service, reference_rate, expired, banks, rates, period_list, period
     warning = ut.valid_input(expired, banks, rates, periods, pv, fv, None)
     if warning is None:
         if len(banks) == 1:
-            checkbox = st.checkbox('Compare to other periods', value=False, key='pmt')
+            checkbox = st.checkbox(
+                'Compare to other periods', value=False, key='pmt')
             if checkbox:
                 bank = banks[0]
                 rates = []
@@ -164,7 +193,7 @@ def pmt_form(service, reference_rate, expired, banks, rates, period_list, period
                 for period_item in period_list:
                     if int(str(period_item)[0:2]) <= expired:
                         rate_item = get_rate(service, reference_rate, bank,
-                                            period_list.index(period_item))
+                                             period_list.index(period_item))
                         if not np.isnan(rate_item):
                             rates.append(float(rate_item)/100)
                             banks.append(bank)
@@ -173,16 +202,48 @@ def pmt_form(service, reference_rate, expired, banks, rates, period_list, period
     return expired, result, banks, periods, rates, warning
 
 
+def loan_form(service, expired, banks, rates, pv):
+    result = pd.DataFrame()
+    warning = ut.valid_input(expired, banks, rates, None, pv, None, None)
+    if warning is None:
+        if len(banks) == 1:
+            checkbox = st.checkbox(
+                'Compare to other bank', value=False, key='loan')
+            if checkbox:
+                banks = []
+                rates = []
+                df = rd.get_loan_rate()
+                bank_list = list(df['Bank'])
+                for bank in bank_list:
+                    rate = get_rate(service, df, bank,None)
+                    if not np.isnan(rate):
+                            rates.append(float(rate)/100)
+                            banks.append(bank)
+        dummy_periods = []
+        while(len(dummy_periods) != len(banks)):
+            dummy_periods.append(expired)
+        fv = cf.calculate_fv(expired,banks,rates,dummy_periods,pv,0)
+        result = pd.DataFrame(columns=banks)
+        result.loc[len(result.index)] = fv.iloc[-1:].values.tolist()[0]
+        pmt = cf.calculate_loan_pmt(expired,banks,rates,fv.iloc[-1:].values.tolist()[0])
+        result.loc[len(result.index)] = pmt
+        result = result.T.reset_index()
+        result.columns = ['Bank','FV','PMT']
+        
+    return expired, result, banks, rates, warning
+
+
 def get_reference_rate(service, df, selected_bank):
-    st.header(service + " Rate of " + ", ".join(selected_bank))
     if (service == 'Saving'):
         reference_rate = df.loc[df['Bank'].isin(
             selected_bank)]
     else:
         reference_rate = df.loc[df['Bank'].isin(selected_bank)]
 
+    st.header(service + " Rate of " + ", ".join(selected_bank))
     col1, col2 = st.columns([6, 4])
-    ut.render_df(col1, reference_rate)
+    with col1:
+        ut.render_df(reference_rate)
     return reference_rate
 
 
@@ -191,9 +252,7 @@ def get_rate(service, reference_rate, bank, period_index):
     if (service == 'Saving'):
         rate = reference_rate.set_index('Bank').T.iloc[period_index][bank]
     else:
-        rate = reference_rate.iat[0, 1]
-    # if (np.isnan(rate)):
-    #     st.warning(bank + ' not support this period')
+        rate = reference_rate.set_index('Bank').T.iloc[0][bank]
     return rate
 
 
@@ -213,4 +272,3 @@ def expect_pv(rate, duration, fv, pmt):
     result = npf.pv(rate=rate, nper=duration, fv=fv, pmt=-pmt)
     st.markdown("Total cash that you have to deposit from right now is: <b style=\"color:green;\">{result}</b>".format(
         result="{:,}".format(-result)), unsafe_allow_html=True)
-
