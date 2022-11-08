@@ -73,9 +73,6 @@ Thứ hai, việc quy đổi số lượng tiền trong tương lai về hiện 
 |beautifulsoup4| Dùng cho việc thu thập dữ liệu từ các trang web trở nên dễ dàng hơn|
 |streamlit| Là một framework mã nguồn mở dành cho các nghiệp vụ học máy và phân tích dữ liệu, chuyển đổi các dòng code tính toán, khởi tạo giao diện thành một trang web| 
 ##### **2. Các thuật toán liên quan**
-|Thuật Toán       | Mô Tả         |
-|-----------------|---------------|
-|pv               | numpy_financial.pv(rate, nper, pmt, fv=0, when='end')
 
 *Thuật toán PV*
 
