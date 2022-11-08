@@ -103,7 +103,7 @@ Cấu trúc như sau:
 - *Bước 04: Nhập các lệnh điều kiện, truy vấn, các thuật toán, công thức tính toán các giá trị hiện tại, tương lai, lượng tiền gửi tiết kiệm/trả nợ vay theo từng kỳ của dòng tiền, các lệnh tạo biểu đồ, đồng thời trích dẫn bộ dữ liệu lãi suất vào bảng, biểu đồ và thuật toán làm cơ sở tính toán*
 - *Bước 05: Thêm, chỉnh sửa các chức năng, bảng biểu, phông nền... để làm trang web tiện lợi và ưa nhìn hơn*
 - *Bước 06: Chạy code để triển khai trang web tính toán dòng tiền lên ứng dụng Streamlit*
-- 
+
 #### **IV. Kết luận** 
 Nhóm thiết kế trang web tính toán dòng tiền qua ứng dụng Streamlit nhằm:
 - Giúp cho người dùng có thể dễ dàng tính toán, ước tính được giá trị cần thiết cũng như thấy được lượng tiền qua từng kỳ của mình biểu hiện qua biểu đồ.
