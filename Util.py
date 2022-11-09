@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+import pandas as pd
 import altair as alt
 import streamlit as st
 
@@ -90,3 +90,17 @@ def generate_pmt_chart(df):
     )
 
     return bar
+
+def generate_loan_chart(expired,df):
+    chart_data = pd.DataFrame()
+    for index, row in df.iterrows():
+        bank = row['Bank']
+        fv = row['FV']
+        pmt = row['PMT']
+        cashflow = []
+        for i in range(expired+1):
+            cashflow.append(fv-pmt*i)
+        chart_data[bank] = cashflow
+
+    line = generate_fv_chart(df=chart_data,expired=expired)
+    return line

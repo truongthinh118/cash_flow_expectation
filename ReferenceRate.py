@@ -55,13 +55,17 @@ def render_reference_loan():
     col1, col2 = st.columns(2)
 
     with col1:
-        expired, result, banks,periods, rates, warning = form_process(
+        expired, result, banks, periods, rates, warning = form_process(
             'Loan', selected_bank, reference_rate, 'loan')
     if st.session_state['form_submit_button3']:
-            if warning is not None:
-                col2.warning(warning)
-            else:
-                col2.write(result)
+        if warning is not None:
+            col2.warning(warning)
+        else:
+            col2.altair_chart(ut.generate_loan_chart(
+                expired, result), use_container_width=True)
+            mini_expander = st.expander('Detail')
+            mini_expander.dataframe(result)
+
 
 def render_refernce_page(service):
     df = pd.DataFrame
@@ -147,7 +151,7 @@ def form_process(service, selected_bank, reference_rate, key):
             st.session_state['form_submit_button3'] = submitted2
 
         if st.session_state['form_submit_button3']:
-            return loan_form(service,expired,banks,rates,pv)
+            return loan_form(service, expired, banks, rates, pv)
     return expired, result, banks, periods, rates, warning
 
 
@@ -215,22 +219,23 @@ def loan_form(service, expired, banks, rates, pv):
                 df = rd.get_loan_rate()
                 bank_list = list(df['Bank'])
                 for bank in bank_list:
-                    rate = get_rate(service, df, bank,None)
+                    rate = get_rate(service, df, bank, None)
                     if not np.isnan(rate):
-                            rates.append(float(rate)/100)
-                            banks.append(bank)
+                        rates.append(float(rate)/100)
+                        banks.append(bank)
         dummy_periods = []
-        while(len(dummy_periods) != len(banks)):
+        while (len(dummy_periods) != len(banks)):
             dummy_periods.append(expired)
-        fv = cf.calculate_fv(expired,banks,rates,dummy_periods,pv,0)
+        fv = cf.calculate_fv(expired, banks, rates, dummy_periods, pv, 0)
         result = pd.DataFrame(columns=banks)
         result.loc[len(result.index)] = fv.iloc[-1:].values.tolist()[0]
-        pmt = cf.calculate_loan_pmt(expired,banks,rates,fv.iloc[-1:].values.tolist()[0])
+        pmt = cf.calculate_loan_pmt(
+            expired, banks, rates, fv.iloc[-1:].values.tolist()[0])
         result.loc[len(result.index)] = pmt
         result = result.T.reset_index()
-        result.columns = ['Bank','FV','PMT']
-        
-    return expired, result, banks,dummy_periods, rates, warning
+        result.columns = ['Bank', 'FV', 'PMT']
+
+    return expired, result, banks, dummy_periods, rates, warning
 
 
 def get_reference_rate(service, df, selected_bank):
