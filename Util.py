@@ -1,9 +1,8 @@
 from collections import defaultdict
-import pandas as pd
-import altair as alt
-import streamlit as st
 
-import ReferenceRate as rr
+import altair as alt
+import pandas as pd
+import streamlit as st
 
 
 def render_df(df):

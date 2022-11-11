@@ -1,11 +1,9 @@
 import json
-import urllib.request
 
 import pandas as pd
 import requests
 import streamlit as st
 from bs4 import BeautifulSoup
-from html_table_parser.parser import HTMLTableParser
 
 
 @st.experimental_memo
@@ -62,23 +60,3 @@ def format_data(data):
     df[float_columns]= df[float_columns].round(decimals=2)
     df.index+=1
     return df
-
-def url_get_contents(url):
-    req = urllib.request.Request(url=url)
-    f = urllib.request.urlopen(req)
-    return f.read()
-
-def backup_deposit_rate():
-    xhtml = url_get_contents(
-        'https://timo.vn/tai-khoan-tiet-kiem/lai-suat-gui-tiet-kiem-ngan-hang-nao-cao-nhat/').decode(
-        'utf-8')
-
-    p = HTMLTableParser()
-    p.feed(xhtml)
-
-    deposit_rate = pd.DataFrame(p.tables[0])
-    deposit_rate.columns = deposit_rate.iloc[0]
-    deposit_rate = deposit_rate[1:]
-    deposit_rate.head()
-    # deposit_rate = format_data(deposit_rate)
-    return deposit_rate

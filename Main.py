@@ -1,8 +1,8 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-import ReferenceRate as rr
 import CalculateFlow as cf
+import ReferenceRate as rr
 
 
 def main():
@@ -22,8 +22,6 @@ def main():
         rr.render_reference_loan()
     elif page == 'Calculate Tool':
         cf.render_calculate_page()
-    # elif page == 'Calculate Loan':
-    #     st.balloons()
 
 
 main()

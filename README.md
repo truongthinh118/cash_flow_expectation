@@ -69,7 +69,6 @@ Thứ hai, việc quy đổi số lượng tiền trong tương lai về hiện 
 | Pandas          | Cung cấp, thiết kế và khởi tạo các cấu trúc dữ liệu như bảng, đa chiều, chuỗi thời gian một cách nhanh chóng, linh hoạt nhằm hỗ trợ cho việc phân tích dữ liệu|
 | numpy           | Dùng để hỗ trợ thêm cho các mảng ma trận lớn, đa chiều|
 |numpy_financial  | Một tập hợp cung cấp các chức năng tài chính cơ bản|
-|html-table-parser-python3| Mục đích là phân tích cú pháp các bảng HTML mà không cần sự trợ giúp của các mô-đun bên ngoài|
 |beautifulsoup4| Dùng cho việc thu thập dữ liệu từ các trang web trở nên dễ dàng hơn|
 |streamlit| Là một framework mã nguồn mở dành cho các nghiệp vụ học máy và phân tích dữ liệu, chuyển đổi các dòng code tính toán, khởi tạo giao diện thành một trang web| 
 ##### **2. Các thuật toán liên quan**
