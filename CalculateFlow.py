@@ -83,13 +83,60 @@ def calculate_loan_pmt(expired, banks, rates, fv_list):
 
 def render_calculate_page():
     saving_tab, loan_tab = st.tabs(['Saving Goal', 'Loan'])
-
+    
     with saving_tab:
-        form = st.form('calculate_saving')
-        form.number_input('Expired in - Months:', min_value=1)
-        form.number_input('Period - Months:', min_value=1)
-        form.number_input('Saving Goal:')
-        form.number_input('Present Amout')
-        form.number_input('Rate')
+        col1, col2 = st.columns(2)
+        with col1:
+            form = st.form('calculate_saving')
+            expired = form.number_input('Expired in - Months:', min_value=1)
+            period = form.number_input('Period - Months:', min_value=1)
+            fv = form.number_input('Saving Goal:', step=100, min_value=0)
+            pv = form.number_input('Present Amout', step=100, min_value=0)
+            rate = form.number_input('Rate', min_value=0.00)
 
-        form.form_submit_button('Calculate')
+            calculate = form.form_submit_button('Calculate')
+
+        if st.session_state.get('form_submit_button4') != True:
+            st.session_state['form_submit_button4'] = calculate
+
+        if st.session_state['form_submit_button4']:
+            warning = ut.valid_input(rate,pv,fv,None)
+            if warning is not None:
+                col2.warning(warning)
+            else:
+                result = calculate_pmt(expired,['Bank'],[rate/100],[period],pv,fv)
+                col2.altair_chart(ut.generate_pmt_chart(result),use_container_width=True)
+
+    with loan_tab:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write('\n')
+            st.write('\n')
+            form = st.form('calculate_loan')
+            expired = form.number_input('Expired in - Months:', min_value=1)
+            
+            pv = form.number_input('Loan Amout', step=100, min_value=0)
+            rate = form.number_input('Rate', min_value=0.00)
+
+            calculate = form.form_submit_button('Calculate')
+
+        if st.session_state.get('form_submit_button5') != True:
+            st.session_state['form_submit_button5'] = calculate
+
+        if st.session_state['form_submit_button5']:
+            warning = ut.valid_input(rate,pv,None,None)
+            if warning is not None:
+                col2.warning(warning)
+            else:
+                fv = calculate_fv(expired, ['Bank'], [rate/100], [expired], pv, 0)
+                result = pd.DataFrame(columns=['Bank'])
+                result.loc[len(result.index)] = fv.iloc[-1:].values.tolist()[0]
+                pmt = calculate_loan_pmt(
+                    expired, ['Bank'], [rate/100], fv.iloc[-1:].values.tolist()[0])
+                result.loc[len(result.index)] = pmt
+                result = result.T.reset_index()
+                result.columns = ['Bank', 'FV', 'PMT']
+                col2.altair_chart(ut.generate_loan_chart(expired, result), use_container_width=True)
+                mini_expander = st.expander('Detail')
+                mini_expander.dataframe(result)

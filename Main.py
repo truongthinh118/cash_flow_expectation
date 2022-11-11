@@ -21,7 +21,6 @@ def main():
     elif page == 'Refer Loan Rate':
         rr.render_reference_loan()
     elif page == 'Calculate Tool':
-        st.balloons()
         cf.render_calculate_page()
     # elif page == 'Calculate Loan':
     #     st.balloons()

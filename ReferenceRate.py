@@ -22,7 +22,7 @@ def render_reference_saving():
             if warning is not None:
                 col2.warning(warning)
             else:
-                col2.altair_chart(ut.generate_fv_chart(
+                col2.altair_chart(ut.generate_fv_chart('Saving',
                     result, expired), use_container_width=True)
                 mini_expander = st.expander('Detail Cash Flow') if len(
                     selected_bank) < 5 else col2.expander('Detail Cash Flow')
@@ -159,7 +159,7 @@ def fv_form(service, reference_rate, expired, banks, rates, period_list, periods
 
     result = pd.DataFrame()
 
-    warning = ut.valid_input(expired, banks, rates, periods, pv, fv, pmt)
+    warning = ut.valid_refer_input(expired, banks, rates, periods, pv, fv, pmt)
     if warning is None:
         if len(banks) == 1:
             checkbox = st.checkbox(
@@ -184,7 +184,7 @@ def fv_form(service, reference_rate, expired, banks, rates, period_list, periods
 def pmt_form(service, reference_rate, expired, banks, rates, period_list, periods, pv, fv, pmt):
     result = []
 
-    warning = ut.valid_input(expired, banks, rates, periods, pv, fv, None)
+    warning = ut.valid_refer_input(expired, banks, rates, periods, pv, fv, None)
     if warning is None:
         if len(banks) == 1:
             checkbox = st.checkbox(
@@ -208,7 +208,8 @@ def pmt_form(service, reference_rate, expired, banks, rates, period_list, period
 
 def loan_form(service, expired, banks, rates, pv):
     result = pd.DataFrame()
-    warning = ut.valid_input(expired, banks, rates, None, pv, None, None)
+    dummy_periods = []
+    warning = ut.valid_refer_input(expired, banks, rates, None, pv, None, None)
     if warning is None:
         if len(banks) == 1:
             checkbox = st.checkbox(
@@ -223,7 +224,7 @@ def loan_form(service, expired, banks, rates, pv):
                     if not np.isnan(rate):
                         rates.append(float(rate)/100)
                         banks.append(bank)
-        dummy_periods = []
+        
         while (len(dummy_periods) != len(banks)):
             dummy_periods.append(expired)
         fv = cf.calculate_fv(expired, banks, rates, dummy_periods, pv, 0)

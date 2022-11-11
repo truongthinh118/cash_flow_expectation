@@ -13,7 +13,7 @@ def render_df(df):
     st.write("\n")
 
 
-def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
+def valid_refer_input(expire, selected_bank, rates, periods, pv, fv, pmt):
     if len(selected_bank) == 0:
         return 'Please Choose At Least A Bank'
     dup_bank_index = list_duplicates(selected_bank)
@@ -21,7 +21,11 @@ def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
         for index in index_list:
             if periods.count(periods[index]) > 1:
                 return 'Please Choose The Different Period For The Same Bank'
+    return valid_input(None,pv, fv, pmt)
 
+def valid_input(rate,pv, fv, pmt):
+    if rate is not None and rate <= 0:
+        return 'Rate value must be greater than Zero'
     if fv is None and pv == 0 and pmt == 0:
         return 'Present value and Payment cannot be Zero at the similiar time'
     elif pmt is None and pv is not None and fv is not None:
@@ -31,7 +35,9 @@ def valid_input(expire, selected_bank, rates, periods, pv, fv, pmt):
             return 'Future Value must be greater than Present Value'
     elif pv is None and fv == 0 and pmt == 0:
         return 'Future value and Payment cannot be Zero at the similiar time'
-
+    elif fv is None and pmt is None:
+        if pv == 0:
+            return 'Loan Amount must be greater than Zero'
     return None
 
 
@@ -52,7 +58,7 @@ def get_dup_index(key, seq):
 
 
 @st.experimental_memo
-def generate_fv_chart(df, expired):
+def generate_fv_chart(service, df, expired):
     line = alt.Chart(df.reset_index().melt('index')).mark_line(interpolate='step-after', point=True).encode(
         alt.X('index:Q', title="Months", scale=alt.Scale(
             domain=[0, expired]), axis=alt.Axis(tickMinStep=1)),
@@ -61,7 +67,7 @@ def generate_fv_chart(df, expired):
     ).properties(
         height=450,
         # width=750,
-        title='Reference Saving Rate'
+        title='Reference {service} Rate'.format(service=service)
     ).configure_title(
         fontSize=24
     ).configure_axis(
@@ -102,5 +108,5 @@ def generate_loan_chart(expired,df):
             cashflow.append(fv-pmt*i)
         chart_data[bank] = cashflow
 
-    line = generate_fv_chart(df=chart_data,expired=expired)
+    line = generate_fv_chart('Loan',df=chart_data,expired=expired)
     return line
