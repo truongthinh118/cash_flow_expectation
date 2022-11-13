@@ -96,12 +96,11 @@ Cấu trúc như sau:
 
 >$$numpy-financial.pmt(rate, nper, pv, fv=0, when='end')$$
 ##### **3. Phương pháp tạo giao diện**
-- **Bước 01**: Nhập các thư viện vào, tiêu biểu là pandas, numpy, Streamlit
-- **Bước 02**: Thu thập, chuẩn bị sẵn bộ dữ liệu lãi suất kỳ hạn tiết kiệm/vay của các ngân hàng
-- **Bước 03**: Phác thảo, thiết kế giao diện, canh vị trí, gán tên cho các khung chức năng trong trang web
-- **Bước 04**: Nhập các lệnh điều kiện, truy vấn, các thuật toán, công thức tính toán các giá trị hiện tại, tương lai, lượng tiền gửi tiết kiệm/trả nợ vay theo từng kỳ của dòng tiền, các lệnh tạo biểu đồ, đồng thời trích dẫn bộ dữ liệu lãi suất vào bảng, biểu đồ và thuật toán làm cơ sở tính toán
-- **Bước 05**: Thêm, chỉnh sửa các chức năng, bảng biểu, phông nền... để làm trang web tiện lợi và ưa nhìn hơn
-- **Bước 06**: Chạy code để triển khai trang web tính toán dòng tiền lên ứng dụng Streamlit
+- **Bước 01**: Khai báo các thư viện vào, tiêu biểu là pandas, numpy, Streamlit
+- **Bước 02**: Thu thập, cào dữ liệu lãi suất [tiết kiệm](https://money24h.vn/lai-suat-gui-tiet-kiem-ngan-hang)/[vay](https://money24h.vn/lai-suat-vay-ngan-hang) của các ngân hàng từ trang web
+- **Bước 03**: Phác thảo, thiết kế giao diện, canh vị trí, gán tên cho các khung chức năng trong trang web tiện lợi với mục đích sử dụng
+- **Bước 04**: Nhúng Streamlit để xây dựng giao diện theo phác thảo
+- **Bước 05**: Chạy code để triển khai trang web
 
 #### **IV. Kết luận** 
 Nhóm thiết kế trang web tính toán dòng tiền qua ứng dụng Streamlit nhằm:
