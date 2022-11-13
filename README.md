@@ -79,7 +79,7 @@ Dùng để tính toán giá trị hiện tại của dòng tiền.
 
 Cấu trúc như sau:
 
->$$numpy-financial.pv(rate, nper, pmt, fv=0, when='end') $$
+>$$numpy-financial.pv(rate, nper, pmt, fv, when='end') $$
 
 *Thuật toán FV*
 
